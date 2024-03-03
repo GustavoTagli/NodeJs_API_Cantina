@@ -17,4 +17,10 @@ app.use("/api", adminRoutes)
 app.use("/api", categoryRoutes)
 app.use("/api", productRoutes)
 
-app.listen(process.env.PORT ? Number(process.env.PORT) : 3333)
+app.listen(process.env.PORT ? Number(process.env.PORT) : 3333, () => {
+	console.log(
+		`Server is running on port ${
+			process.env.PORT ? Number(process.env.PORT) : 3333
+		}.`
+	)
+})
