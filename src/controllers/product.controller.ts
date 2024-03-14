@@ -8,8 +8,14 @@ import deleteFileFromDrive from "../utils/deleteFileFromDrive"
 
 export const getAllProducts = async (req: Request, res: Response) => {
 	try {
+		const { sortField, sortOrder, category } = req.query
+
 		const products: Product[] | null = await ProductModel.findMany({
-			orderBy: { createdAt: "desc" }
+			orderBy:
+				sortField && sortOrder
+					? { [sortField as string]: sortOrder }
+					: { createdAt: "desc" },
+			where: category ? { categoryId: category as string } : undefined
 		})
 
 		return res.json(products)
@@ -48,8 +54,6 @@ export const createProduct = async (req: Request, res: Response) => {
 		if (!category) {
 			return res.status(400).json({ message: "Category not found." })
 		}
-
-		console.log(category)
 
 		const data: any = await uploadFileToDrive(file)
 		const image = `https://drive.google.com/uc?id=${data.id}`
