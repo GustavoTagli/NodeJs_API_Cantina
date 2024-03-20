@@ -43,12 +43,13 @@ model Category {
 }
 
 model Order {
-  id         Int      @id @default(autoincrement())
-  clientname String
-  status     Int      @default(0) //0 - awaiting approval, 1 - pending, 2 - delivered
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  expiryTime DateTime
+  id          Int      @id @default(autoincrement())
+  clientname  String
+  observation String?
+  status      Int      @default(0) //0 - awaiting approval, 1 - pending, 2 - delivered
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  expiryTime  DateTime
 
   orders OrderProduct[]
 }
