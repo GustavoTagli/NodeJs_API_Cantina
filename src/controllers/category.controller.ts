@@ -4,7 +4,9 @@ import uploadFileToDrive from "../utils/uploadFileToDrive"
 
 export const getAllCategories = async (req: Request, res: Response) => {
 	try {
-		const categories = await CategoryModel.findMany()
+		const categories = await CategoryModel.findMany({
+			orderBy: { name: "asc" }
+		})
 
 		if (!categories) {
 			return res.status(404).json({ message: "Any category found" })

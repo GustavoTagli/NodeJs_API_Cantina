@@ -4,7 +4,7 @@
 	"description": "",
 	"main": "index.js",
 	"scripts": {
-		"server": "tsnd --exit-child ./src/server.ts",
+		"server": "tsnd --exit-child ./src/server.ts --host 192.168.0.6",
 		"build": "tsup src",
 		"start": "node ./dist/server.js"
 	},

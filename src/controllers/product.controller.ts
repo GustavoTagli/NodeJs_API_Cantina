@@ -133,6 +133,42 @@ export const updateProduct = async (req: Request, res: Response) => {
 	}
 }
 
+export const updateNumericFieldsOfProducts = async (
+	req: Request,
+	res: Response
+) => {
+	try {
+		const { body } = req
+		const { productsId, field, value } = body
+
+		const updatedProducts = await Promise.all(
+			productsId.map(async (productId: any) => {
+				const productFound = await findProductById(productId)
+
+				if (!productFound) {
+					return res.status(400).json({ message: "Product not found." })
+				}
+
+				const updatedProduct = await ProductModel.update({
+					where: { id: productId },
+					data: {
+						[field]: +value
+					}
+				})
+
+				return updatedProduct
+			})
+		)
+
+		return res.status(200).json(updatedProducts)
+	} catch (error: any) {
+		console.log("Update stock error:  ", error)
+		return res
+			.status(500)
+			.json({ message: `Update stock error:  ${error.message}` })
+	}
+}
+
 export const deleteProduct = async (req: Request, res: Response) => {
 	try {
 		const id = req.params.id

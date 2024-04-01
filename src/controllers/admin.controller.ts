@@ -3,6 +3,7 @@ import bcrypt from "bcrypt"
 import { Request, Response } from "express"
 import { AdminModel } from "../models/admin.model"
 import findUserByUsername from "../utils/findUserByUsername"
+import verifyToken from "../utils/verifyToken"
 
 const SECRET_KEY = process.env.SECRET_KEY
 
@@ -102,7 +103,7 @@ export const login = async (req: Request, res: Response) => {
 
 		if (SECRET_KEY) {
 			const token = jwt.sign({ adminId: admin.id }, SECRET_KEY, {
-				expiresIn: "12h"
+				expiresIn: "24h"
 			})
 			return res.status(200).json({ token })
 		} else {
