@@ -42,7 +42,7 @@ export const getSingleCategory = async (req: Request, res: Response) => {
 export const createCategory = async (req: Request, res: Response) => {
 	try {
 		const { body, file } = req
-		console.log(body)
+
 		if (!body.name) {
 			return res.status(400).json({ message: "Name is required" })
 		}

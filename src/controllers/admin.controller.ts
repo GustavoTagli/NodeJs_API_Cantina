@@ -3,7 +3,6 @@ import bcrypt from "bcrypt"
 import { Request, Response } from "express"
 import { AdminModel } from "../models/admin.model"
 import findUserByUsername from "../utils/findUserByUsername"
-import verifyToken from "../utils/verifyToken"
 
 const SECRET_KEY = process.env.SECRET_KEY
 
@@ -58,8 +57,6 @@ export const updateAdmin = async (req: Request, res: Response) => {
 		const adminExists = await AdminModel.findUnique({
 			where: { id: id }
 		})
-
-		console.log(username)
 
 		if (!adminExists)
 			return res.status(404).json({ message: "admin not found" })

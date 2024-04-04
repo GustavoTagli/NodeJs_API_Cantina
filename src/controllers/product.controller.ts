@@ -5,18 +5,52 @@ import { findCategoryById } from "../utils/findCategoryById"
 import { findProductById } from "../utils/findProductById"
 import uploadFileToDrive from "../utils/uploadFileToDrive"
 import deleteFileFromDrive from "../utils/deleteFileFromDrive"
+import { io } from "../server"
+
+const emitProductsUpdated = () => {
+	console.log("Emitting new product event")
+	io.emit("productsUpdated")
+}
 
 export const getAllProducts = async (req: Request, res: Response) => {
 	try {
 		const { sortField, sortOrder, category } = req.query
+		let products: Product[] | null = []
 
-		const products: Product[] | null = await ProductModel.findMany({
-			orderBy:
-				sortField && sortOrder
-					? { [sortField as string]: sortOrder }
-					: { createdAt: "desc" },
-			where: category ? { categoryId: category as string } : undefined
-		})
+		if (sortField === "orders") {
+			products = await ProductModel.findMany({
+				include: {
+					orders: {
+						select: {
+							id: true,
+							productId: true,
+							quantity: true,
+							Order: true
+						}
+					}
+				},
+				orderBy: { orders: { _count: "desc" } },
+				where: category ? { categoryId: category as string } : undefined
+			})
+		} else {
+			products = await ProductModel.findMany({
+				include: {
+					orders: {
+						select: {
+							id: true,
+							productId: true,
+							quantity: true,
+							Order: true
+						}
+					}
+				},
+				orderBy:
+					sortField && sortOrder
+						? { [sortField as string]: sortOrder }
+						: { createdAt: "desc" },
+				where: category ? { categoryId: category as string } : undefined
+			})
+		}
 
 		return res.json(products)
 	} catch (error: any) {
@@ -99,12 +133,11 @@ export const updateProduct = async (req: Request, res: Response) => {
 		else updatedFields.name = product.name
 		if (body.price) updatedFields.price = +body.price
 		else updatedFields.price = product.price
-		if (body.quantityInStock)
+		if (body.quantityInStock || body.quantityInStock === 0)
 			updatedFields.quantityInStock = +body.quantityInStock
 		else updatedFields.quantityInStock = product.quantityInStock
 		if (body.description) updatedFields.description = body.description
 		else updatedFields.description = product.description
-		console.log(body.category)
 		if (body.category) {
 			const category = await findCategoryById(body.category)
 			if (!category) {
@@ -123,6 +156,8 @@ export const updateProduct = async (req: Request, res: Response) => {
 			where: { id },
 			data: updatedFields
 		})
+
+		emitProductsUpdated()
 
 		return res.status(200).json(productUpdated)
 	} catch (error: any) {
@@ -159,6 +194,8 @@ export const updateNumericFieldsOfProducts = async (
 				return updatedProduct
 			})
 		)
+
+		emitProductsUpdated()
 
 		return res.status(200).json(updatedProducts)
 	} catch (error: any) {
