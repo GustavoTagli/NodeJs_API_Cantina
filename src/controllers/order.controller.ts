@@ -15,16 +15,6 @@ export const createOrder = async (req: Request, res: Response) => {
 		const expiryTime = new Date()
 		expiryTime.setHours(expiryTime.getHours() + 24)
 
-		const fields: any = {
-			clientname,
-			expiryTime,
-			status: status ? status : 0
-		}
-
-		const order = await OrderModel.create({
-			data: fields
-		})
-
 		const createManyPromises = orderArray.map(async (item: any) => {
 			const product: Product = (await ProductModel.findUnique({
 				where: { id: item.productId }
@@ -34,9 +24,19 @@ export const createOrder = async (req: Request, res: Response) => {
 				throw new Error("Quantity in stock is not enough")
 			}
 
+			const fields: any = {
+				clientname,
+				expiryTime,
+				status: status ? status : 0
+			}
+
+			const newOrder = await OrderModel.create({
+				data: fields
+			})
+
 			await OrderProductModel.create({
 				data: {
-					orderId: order.id,
+					orderId: newOrder.id,
 					productId: item.productId,
 					quantity: item.quantity
 				}
@@ -46,9 +46,11 @@ export const createOrder = async (req: Request, res: Response) => {
 				where: { id: item.productId },
 				data: { quantityInStock: { decrement: item.quantity } }
 			})
+
+			return newOrder
 		})
 
-		await Promise.all(createManyPromises)
+		const order = await Promise.all(createManyPromises)
 
 		emitOrdersUpdated()
 
