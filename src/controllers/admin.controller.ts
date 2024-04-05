@@ -34,6 +34,8 @@ export const createAdmin = async (req: Request, res: Response) => {
 		const passwordHash = await bcrypt.hash(password, 10)
 		const adminExists = await findUserByUsername(username)
 
+		console.log(username, password)
+
 		if (adminExists) {
 			return res.status(409).json({ message: "admin already exists" })
 		}
