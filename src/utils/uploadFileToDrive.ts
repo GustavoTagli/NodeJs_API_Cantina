@@ -1,12 +1,11 @@
 import stream from "stream"
-import path from "path"
 import { google } from "googleapis"
+import { CREDENTIALS } from "./credentials"
 
-const KEYFILEPATH = path.join(__dirname, "../credentials.json")
 const SCOPES = ["https://www.googleapis.com/auth/drive"]
 
 const auth = new google.auth.GoogleAuth({
-	keyFile: KEYFILEPATH,
+	credentials: CREDENTIALS,
 	scopes: SCOPES
 })
 
