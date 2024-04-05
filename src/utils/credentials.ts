@@ -11,5 +11,5 @@ export const CREDENTIALS = {
 		process.env.GOOGLE_APPLICATION_CREDENTIALS_AUTH_PROVIDER_X509_CERT_URL,
 	client_x509_cert_url:
 		process.env.GOOGLE_APPLICATION_CREDENTIALS_CLIENT_X509_CERT_URL,
-	universe_domain: process.env.GOOGLE_APPLICATION_CREDENTIALS_universe_domain
+	universe_domain: process.env.GOOGLE_APPLICATION_CREDENTIALS_UNIVERSE_DOMAIN
 }
