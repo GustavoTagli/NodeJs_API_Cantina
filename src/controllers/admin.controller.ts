@@ -20,6 +20,7 @@ export const getSingleAdmin = async (req: Request, res: Response) => {
 }
 
 export const getAllAdmins = async (req: Request, res: Response) => {
+	console.log("getAllAdmins")
 	try {
 		const admins = await AdminModel.findMany()
 		res.status(200).json(admins)
@@ -29,12 +30,12 @@ export const getAllAdmins = async (req: Request, res: Response) => {
 }
 
 export const createAdmin = async (req: Request, res: Response) => {
+	console.log("createAdmin")
+
 	try {
 		const { username, password } = req.body
 		const passwordHash = await bcrypt.hash(password, 10)
 		const adminExists = await findUserByUsername(username)
-
-		console.log(username, password)
 
 		if (adminExists) {
 			return res.status(409).json({ message: "admin already exists" })
