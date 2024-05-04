@@ -8,7 +8,6 @@ import deleteFileFromDrive from "../utils/deleteFileFromDrive"
 import { io } from "../server"
 
 const emitProductsUpdated = () => {
-	console.log("Emitting new product event")
 	io.emit("productsUpdated")
 }
 

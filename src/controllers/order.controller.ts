@@ -3,10 +3,10 @@ import { OrderModel } from "../models/order.model"
 import { OrderProductModel } from "../models/orderProduct.model"
 import { ProductModel } from "../models/product.model"
 import { io } from "../server"
-import { Product } from "@prisma/client"
+import { Order, Product } from "@prisma/client"
 
-const emitOrdersUpdated = () => {
-	io.emit("ordersUpdated")
+const emitOrdersUpdated = (order: Order) => {
+	io.emit("ordersUpdated", order)
 }
 
 export const createOrder = async (req: Request, res: Response) => {
@@ -15,24 +15,27 @@ export const createOrder = async (req: Request, res: Response) => {
 		const expiryTime = new Date()
 		expiryTime.setHours(expiryTime.getHours() + 24)
 
+		const fields: any = {
+			clientname,
+			expiryTime,
+			status: status ? status : 0
+		}
+
+		const newOrder = await OrderModel.create({
+			data: fields
+		})
+
 		const createManyPromises = orderArray.map(async (item: any) => {
 			const product: Product = (await ProductModel.findUnique({
 				where: { id: item.productId }
 			})) as Product
 
 			if (item.quantity > product.quantityInStock) {
-				throw new Error("Quantity in stock is not enough")
+				await OrderModel.delete({ where: { id: newOrder.id } })
+				throw new Error(
+					`Quantidade em estoque insuficiente do seguinte produto: ${product.name}`
+				)
 			}
-
-			const fields: any = {
-				clientname,
-				expiryTime,
-				status: status ? status : 0
-			}
-
-			const newOrder = await OrderModel.create({
-				data: fields
-			})
 
 			await OrderProductModel.create({
 				data: {
@@ -46,19 +49,17 @@ export const createOrder = async (req: Request, res: Response) => {
 				where: { id: item.productId },
 				data: { quantityInStock: { decrement: item.quantity } }
 			})
-
-			return newOrder
 		})
 
-		const order = await Promise.all(createManyPromises)
+		await Promise.all(createManyPromises)
 
-		emitOrdersUpdated()
+		emitOrdersUpdated(newOrder)
 
-		return res.status(201).json(order)
+		return res.status(201).json(newOrder)
 	} catch (error: any) {
 		console.error(error)
 
-		if (error.message === "Quantity in stock is not enough") {
+		if (error.message.includes("Quantidade em estoque insuficiente")) {
 			return res.status(400).json({ error: error.message })
 		}
 
@@ -69,10 +70,21 @@ export const createOrder = async (req: Request, res: Response) => {
 export const deleteOrder = async (req: Request, res: Response) => {
 	try {
 		const id = +req.params.id
+		const currentOrder = (await OrderModel.findUnique({
+			where: { id },
+			include: { orders: true }
+		})) as any
+
+		await currentOrder.orders.map(async (item: any) => {
+			await ProductModel.update({
+				where: { id: item.productId },
+				data: { quantityInStock: { increment: item.quantity } }
+			})
+		})
 
 		const orderDeleted = await OrderModel.delete({ where: { id } })
 
-		emitOrdersUpdated()
+		emitOrdersUpdated(orderDeleted)
 
 		return res.status(200).json(orderDeleted)
 	} catch (error: any) {
@@ -113,7 +125,7 @@ export const updateOrder = async (req: Request, res: Response) => {
 			}
 		})
 
-		emitOrdersUpdated()
+		emitOrdersUpdated(order)
 
 		return res.status(200).json(order)
 	} catch (error: any) {
@@ -143,7 +155,7 @@ export const updateOrderStatus = async (req: Request, res: Response) => {
 			data: data
 		})
 
-		emitOrdersUpdated()
+		emitOrdersUpdated(order)
 
 		return res.status(200).json(order)
 	} catch (error: any) {
@@ -222,7 +234,8 @@ export const deleteExpiredOrders = async () => {
 
 	const expiredOrders = await OrderModel.findMany({
 		where: {
-			expiryTime: { lt: now }
+			expiryTime: { lt: now },
+			status: 4
 		}
 	})
 
@@ -234,5 +247,5 @@ export const deleteExpiredOrders = async () => {
 
 	console.log("Expired orders deleted")
 
-	emitOrdersUpdated()
+	emitOrdersUpdated({} as Order)
 }

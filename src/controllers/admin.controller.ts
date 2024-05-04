@@ -103,7 +103,7 @@ export const login = async (req: Request, res: Response) => {
 
 		if (SECRET_KEY) {
 			const token = jwt.sign({ adminId: admin.id }, SECRET_KEY, {
-				expiresIn: "24h"
+				expiresIn: "48h"
 			})
 			return res.status(200).json({ token })
 		} else {

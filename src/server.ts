@@ -26,7 +26,6 @@ app.use("/api", productRoutes)
 app.use("/api", orderRoutes)
 app.use("/api", adminRoutes)
 app.use("/api", categoryRoutes)
-app.use("/api", productRoutes)
 
 cron.schedule("0 0 * * *", async () => {
 	try {
